@@ -12,6 +12,22 @@ Library version of the [lossypng](https://github.com/foobaz/lossypng) command li
 
 Feel free to copy all or parts of this package into your own codebase.
 
+## Examples
+
+### Original image `320 KB`
+
+![Original image](http://assets.c7.se/lossypng/dakar-original.png)
+
+The optimized images were encoded to PNG using a `png.Encoder{png.BestCompression}`
+
+### Optimize(m, RGBAConversion, 10) `156 KB`
+
+![Optimize(m, RGBAConversion, 10)](http://assets.c7.se/lossypng/dakar-rgba-10.png)
+
+### Optimize(m, GrayscaleConversion, 10) `40 KB`
+
+![Optimize(m, GrayscaleConversion, 10)](http://assets.c7.se/lossypng/dakar-grayscale-10.png)
+
 ## Credit
 
 This compression technique was invented by Michael Vinther for his excellent
