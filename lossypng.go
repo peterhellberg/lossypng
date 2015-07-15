@@ -1,3 +1,12 @@
+/*
+
+Package lossypng is a library version of the lossypng command line tool.
+
+Installation
+
+    go get -u github.com/peterhellberg/lossypng
+
+*/
 package lossypng
 
 import (
@@ -7,8 +16,13 @@ import (
 )
 
 const (
+	// NoConversion does not convert the image
 	NoConversion = iota
+
+	// GrayscaleConversion convert image to grayscale
 	GrayscaleConversion
+
+	// RGBAConversion convert image to 32-bit color
 	RGBAConversion
 )
 
@@ -16,6 +30,7 @@ const deltaComponents = 4
 
 type colorDelta [deltaComponents]int32 // difference between two colors in rgba
 
+// Optimize optimizes an image using the selected color conversion and quantization
 func Optimize(decoded image.Image, colorConversion int, quantization int) image.Image {
 	// optimize image, converting colorspace if requested
 	bounds := decoded.Bounds()
