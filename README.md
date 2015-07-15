@@ -2,6 +2,8 @@
 
 # lossypng
 
+[![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/peterhellberg/lossypng)
+
 Library version of the [lossypng](https://github.com/foobaz/lossypng) command line tool.
 
 > Shrink PNG files by applying a lossy filter
