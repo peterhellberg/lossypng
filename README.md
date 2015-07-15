@@ -16,8 +16,10 @@ Feel free to copy all or parts of this package into your own codebase.
 
 This compression technique was invented by Michael Vinther for his excellent
 Windows program, [Image Analyzer](http://meesoft.logicnet.dk/Analyzer/). It
-does much more than just compression. It was ported and improved by William
-MacKay.
+does much more than just compression. It was ported and improved by
+[William MacKay](https://github.com/foobaz/lossypng).
+
+I have just converted it into a library.
 
 ## License
 
