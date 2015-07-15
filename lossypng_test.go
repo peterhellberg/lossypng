@@ -13,9 +13,9 @@ func TestOptimize(t *testing.T) {
 	o := Optimize(m, RGBAConversion, 10)
 	g := Optimize(m, GrayscaleConversion, 10)
 
-	savePNGImage(m, "original.png")
-	savePNGImage(o, "optimized.png")
-	savePNGImage(g, "grayscale.png")
+	savePNGImage(m, "/tmp/lossypng-original.png")
+	savePNGImage(o, "/tmp/lossypng-optimized.png")
+	savePNGImage(g, "/tmp/lossypng-grayscale.png")
 }
 
 func openTestImage(fn string) (image.Image, error) {
