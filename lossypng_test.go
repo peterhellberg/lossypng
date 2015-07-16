@@ -10,12 +10,12 @@ import (
 
 func TestOptimize(t *testing.T) {
 	m, _ := openTestImage("_testdata/dakar.png")
-	o := Optimize(m, RGBAConversion, 10)
-	g := Optimize(m, GrayscaleConversion, 10)
+	o := Optimize(m, RGBAConversion, 8)
+	g := Optimize(m, GrayscaleConversion, 20)
 
 	savePNGImage(m, "/tmp/lossypng-original.png")
-	savePNGImage(o, "/tmp/lossypng-optimized.png")
-	savePNGImage(g, "/tmp/lossypng-grayscale.png")
+	savePNGImage(o, "/tmp/lossypng-optimized-8.png")
+	savePNGImage(g, "/tmp/lossypng-grayscale-20.png")
 }
 
 func openTestImage(fn string) (image.Image, error) {
