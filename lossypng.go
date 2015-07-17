@@ -31,43 +31,44 @@ const deltaComponents = 4
 type colorDelta [deltaComponents]int32 // difference between two colors in rgba
 
 // Optimize optimizes an image using the selected color conversion and quantization
-func Optimize(decoded image.Image, colorConversion int, quantization int) image.Image {
-	// optimize image, converting colorspace if requested
-	bounds := decoded.Bounds()
-	optimized := decoded // update optimized variable later if color conversion is necessary
+func Optimize(original image.Image, colorConversion int, quantization int) image.Image {
+	var (
+		bounds    = original.Bounds()
+		optimized = original // update optimized variable later if color conversion is necessary
+	)
 
 	switch colorConversion {
 	case GrayscaleConversion:
 		converted := image.NewGray(bounds)
-		draw.Draw(converted, bounds, decoded, image.ZP, draw.Src)
+		draw.Draw(converted, bounds, original, image.ZP, draw.Src)
 		optimizeForAverageFilter(converted.Pix, bounds, converted.Stride, 1, quantization)
 		optimized = converted
 	case RGBAConversion:
 		converted := image.NewRGBA(bounds)
-		draw.Draw(converted, bounds, decoded, image.ZP, draw.Src)
+		draw.Draw(converted, bounds, original, image.ZP, draw.Src)
 		optimizeForAverageFilter(converted.Pix, bounds, converted.Stride, 4, quantization)
 		optimized = converted
 	default:
 		// no color conversion requested
-		switch optimizee := decoded.(type) {
+		switch o := original.(type) {
 		case *image.Alpha:
-			optimizeForAverageFilter(optimizee.Pix, bounds, optimizee.Stride, 1, quantization)
+			optimizeForAverageFilter(o.Pix, bounds, o.Stride, 1, quantization)
 		case *image.Gray:
-			optimizeForAverageFilter(optimizee.Pix, bounds, optimizee.Stride, 1, quantization)
+			optimizeForAverageFilter(o.Pix, bounds, o.Stride, 1, quantization)
 		case *image.NRGBA:
-			optimizeForAverageFilter(optimizee.Pix, bounds, optimizee.Stride, 4, quantization)
+			optimizeForAverageFilter(o.Pix, bounds, o.Stride, 4, quantization)
 		case *image.Paletted:
 			// many PNGs decode as image.Paletted
 			// use alternative paeth optimizer for paletted images
-			optimizeForPaethFilter(optimizee.Pix, bounds, optimizee.Stride, quantization, optimizee.Palette)
+			optimizeForPaethFilter(o.Pix, bounds, o.Stride, quantization, o.Palette)
 		case *image.Alpha16:
 			converted := image.NewAlpha(bounds)
-			draw.Draw(converted, bounds, decoded, image.ZP, draw.Src)
+			draw.Draw(converted, bounds, original, image.ZP, draw.Src)
 			optimizeForAverageFilter(converted.Pix, bounds, converted.Stride, 1, quantization)
 			optimized = converted
 		case *image.Gray16:
 			converted := image.NewGray(bounds)
-			draw.Draw(converted, bounds, decoded, image.ZP, draw.Src)
+			draw.Draw(converted, bounds, original, image.ZP, draw.Src)
 			optimizeForAverageFilter(converted.Pix, bounds, converted.Stride, 1, quantization)
 			optimized = converted
 		default:
@@ -75,7 +76,7 @@ func Optimize(decoded image.Image, colorConversion int, quantization int) image.
 			// most JPEGs decode as image.YCbCr
 			// most PNGs decode as image.RGBA
 			converted := image.NewNRGBA(bounds)
-			draw.Draw(converted, bounds, decoded, image.ZP, draw.Src)
+			draw.Draw(converted, bounds, original, image.ZP, draw.Src)
 			optimizeForAverageFilter(converted.Pix, bounds, converted.Stride, 4, quantization)
 			optimized = converted
 		}
@@ -167,35 +168,45 @@ func optimizeForPaethFilter(pixels []uint8, bounds image.Rectangle, stride int, 
 
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
-			diffusion := diffuseColorDeltas(colorError, x+filterCenter)
+			var (
+				diffusion = diffuseColorDeltas(colorError, x+filterCenter)
+				offset    = y*stride + x
+				here      = pixels[offset]
 
-			offset := y*stride + x
-			here := pixels[offset]
-			var up, left, diagonal uint8
+				up, left, diagonal uint8
+			)
+
 			if y > 0 {
 				up = pixels[offset-stride]
 			}
+
 			if x > 0 {
 				left = pixels[offset-1]
 			}
+
 			if y > 0 && x > 0 {
 				diagonal = pixels[offset-stride-1]
 			}
-			paeth := paethPredictor(left, up, diagonal) // PNG Paeth filter
 
-			bestDelta := colorDifference(palette[here], palette[paeth])
-			total := bestDelta.add(diffusion)
-			var bestColor uint8
+			var (
+				paeth     = paethPredictor(left, up, diagonal) // PNG Paeth filter
+				bestDelta = colorDifference(palette[here], palette[paeth])
+				total     = bestDelta.add(diffusion)
+				bestColor uint8
+			)
+
 			if (total.magnitude() >> 16) < uint64(quantization*quantization) {
 				bestColor = paeth
 			} else {
 				bestDelta = colorDifference(palette[here], palette[bestColor])
 				total = bestDelta.add(diffusion)
 				bestMagnitude := total.magnitude()
+
 				for i, candidate := range palette {
 					delta := colorDifference(palette[here], candidate)
 					total = delta.add(diffusion)
 					nextMagnitude := total.magnitude()
+
 					if bestMagnitude > nextMagnitude {
 						bestMagnitude = nextMagnitude
 						bestDelta = delta
