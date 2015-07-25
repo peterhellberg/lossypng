@@ -1,4 +1,4 @@
-***Warning: This library should not be used just yet***
+***Warning: This library should probably not be used just yet***
 
 # lossypng
 
