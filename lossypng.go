@@ -105,6 +105,7 @@ func optimizeForAverageFilter(pixels []uint8, bounds image.Rectangle, stride, by
 	)
 
 	var colorError [errorRowCount][]colorDelta
+
 	for i := 0; i < errorRowCount; i++ {
 		colorError[i] = make([]colorDelta, width+filterWidth-1)
 	}
@@ -112,32 +113,41 @@ func optimizeForAverageFilter(pixels []uint8, bounds image.Rectangle, stride, by
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
 			diffusion := diffuseColorDeltas(colorError, x+filterCenter)
+
 			for c := 0; c < bytesPerPixel; c++ {
 				offset := y*stride + x*bytesPerPixel + c
 				here := int32(pixels[offset])
+
 				var errorHere int32
+
 				if here > 0 && here < 255 {
 					var up, left int32
+
 					if y > 0 {
 						up = int32(pixels[offset-stride])
 					}
+
 					if x > 0 {
 						left = int32(pixels[offset-bytesPerPixel])
 					}
+
 					average := (up + left) / 2 // PNG average filter
 
 					newValue := diffusion[c] + here - average
 					newValue += halfStep
 					newValue -= newValue % int32(quantization)
 					newValue += average
+
 					if newValue >= 0 && newValue <= 255 {
 						pixels[offset] = uint8(newValue)
 						errorHere = here - newValue
 					}
 				}
+
 				colorError[0][x+filterCenter][c] = errorHere
 			}
 		}
+
 		for i := 0; i < errorRowCount; i++ {
 			colorError[(i+1)%errorRowCount] = colorError[i]
 		}
@@ -146,6 +156,7 @@ func optimizeForAverageFilter(pixels []uint8, bounds image.Rectangle, stride, by
 
 func optimizeForPaethFilter(pixels []uint8, bounds image.Rectangle, stride int, quantization int, palette color.Palette) {
 	colorCount := len(palette)
+
 	if colorCount <= 0 {
 		return
 	}
@@ -162,6 +173,7 @@ func optimizeForPaethFilter(pixels []uint8, bounds image.Rectangle, stride int, 
 	)
 
 	var colorError [errorRowCount][]colorDelta
+
 	for i := 0; i < errorRowCount; i++ {
 		colorError[i] = make([]colorDelta, width+filterWidth-1)
 	}
@@ -214,9 +226,11 @@ func optimizeForPaethFilter(pixels []uint8, bounds image.Rectangle, stride int, 
 					}
 				}
 			}
+
 			pixels[offset] = bestColor
 			colorError[0][x+filterCenter] = bestDelta
 		}
+
 		for i := 0; i < errorRowCount; i++ {
 			colorError[(i+1)%errorRowCount] = colorError[i]
 		}
@@ -241,27 +255,35 @@ func paethPredictor(a, b, c uint8) uint8 {
 	} else if pb <= pc {
 		return b
 	}
+
 	return c
 }
 
 func colorDifference(a, b color.Color) colorDelta {
 	var ca, cb [4]uint32
+
 	ca[0], ca[1], ca[2], ca[3] = a.RGBA()
 	cb[0], cb[1], cb[2], cb[3] = b.RGBA()
 
 	const full = 65535
 	var delta [4]int32
+
 	for i := 0; i < 3; i++ {
 		pa := ca[i] * full
+
 		if ca[3] > 0 {
 			pa /= ca[3]
 		}
+
 		pb := cb[i] * full
+
 		if cb[3] > 0 {
 			pb /= cb[3]
 		}
+
 		delta[i] = int32(pa) - int32(pb)
 	}
+
 	delta[3] = int32(ca[3]) - int32(cb[3])
 
 	/*
@@ -270,14 +292,17 @@ func colorDifference(a, b color.Color) colorDelta {
 	 */
 	redA := ca[0]
 	redB := cb[0]
+
 	if ca[3] > 0 {
 		redA = redA * full / ca[3]
 	}
+
 	if cb[3] > 0 {
 		redB = redB * full / cb[3]
 	}
 
 	redMean := int32((redA + redB) / 2)
+
 	return colorDelta{
 		int32((2*full + redMean) * delta[0] / (3 * full)),
 		int32(4 * delta[1] / 3),
@@ -288,6 +313,7 @@ func colorDifference(a, b color.Color) colorDelta {
 
 func (a colorDelta) magnitude() uint64 {
 	var d2 uint64
+
 	for i := 0; i < deltaComponents; i++ {
 		d2 += uint64(int64(a[i]) * int64(a[i]))
 	}
@@ -297,14 +323,17 @@ func (a colorDelta) magnitude() uint64 {
 
 func (a colorDelta) add(b colorDelta) colorDelta {
 	var delta colorDelta
+
 	for i := 0; i < deltaComponents; i++ {
 		delta[i] = a[i] + b[i]
 	}
+
 	return delta
 }
 
 func diffuseColorDeltas(colorError [3][]colorDelta, x int) colorDelta {
 	var delta colorDelta
+
 	// Sierra dithering
 	for i := 0; i < deltaComponents; i++ {
 		delta[i] += 2 * colorError[2][x-1][i]
@@ -317,13 +346,16 @@ func diffuseColorDeltas(colorError [3][]colorDelta, x int) colorDelta {
 		delta[i] += 2 * colorError[1][x+2][i]
 		delta[i] += 3 * colorError[0][x-2][i]
 		delta[i] += 5 * colorError[0][x-1][i]
+
 		if delta[i] < 0 {
 			delta[i] -= 16
 		} else {
 			delta[i] += 16
 		}
+
 		delta[i] /= 32
 	}
+
 	return delta
 }
 
@@ -331,5 +363,6 @@ func abs(x int) int {
 	if x < 0 {
 		return -x
 	}
+
 	return x
 }
