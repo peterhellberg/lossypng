@@ -59,7 +59,7 @@ func savePNGImage(m image.Image, fn string) {
 	} else {
 		defer f.Close()
 
-		enc := png.Encoder{png.BestCompression}
+		enc := png.Encoder{CompressionLevel: png.BestCompression}
 		enc.Encode(f, m)
 	}
 }
