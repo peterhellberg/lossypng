@@ -27,6 +27,36 @@ func TestOptimize(t *testing.T) {
 	}
 }
 
+func BenchmarkOptimizeNoConversionQ1(b *testing.B) {
+	m, _ := openTestImage("_testdata/dakar.png")
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		Optimize(m, NoConversion, 1)
+	}
+}
+
+func BenchmarkOptimizeNoConversionQ10(b *testing.B) {
+	m, _ := openTestImage("_testdata/dakar.png")
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		Optimize(m, NoConversion, 10)
+	}
+}
+
+func BenchmarkOptimizeNoConversionQ20(b *testing.B) {
+	m, _ := openTestImage("_testdata/dakar.png")
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		Optimize(m, NoConversion, 20)
+	}
+}
+
 func openTestImage(fn string) (image.Image, error) {
 	f, err := os.Open(fn)
 	if err != nil {
