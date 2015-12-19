@@ -6,6 +6,7 @@ import (
 	"image"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	_ "image/gif" // for image.Decode() format registration
@@ -94,16 +95,8 @@ func main() {
 	}
 }
 
-func pathWithSuffix(filePath string, suffix string) string {
-	extension := path.Ext(filePath)
-	insertion := len(extension)
-	if insertion > 0 {
-		// if extension exists, trim it off of the base filename
-		insertion = strings.LastIndex(filePath, extension)
-	} else {
-		insertion = len(filePath)
-	}
-	return filePath[:insertion] + suffix
+func pathWithSuffix(path string, suffix string) string {
+	return strings.TrimSuffix(path, filepath.Ext(path)) + suffix
 }
 
 func sizeDesc(size int64) string {
