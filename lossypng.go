@@ -155,16 +155,9 @@ func optimizeForAverageFilter(pixels []uint8, bounds image.Rectangle, stride, by
 }
 
 func optimizeForPaethFilter(pixels []uint8, bounds image.Rectangle, stride int, quantization int, palette color.Palette) {
-	colorCount := len(palette)
-
-	if colorCount <= 0 {
+	if len(palette) <= 0 {
 		return
 	}
-
-	var (
-		height = bounds.Dy()
-		width  = bounds.Dx()
-	)
 
 	const (
 		errorRowCount = 3
@@ -175,11 +168,11 @@ func optimizeForPaethFilter(pixels []uint8, bounds image.Rectangle, stride int, 
 	var colorError [errorRowCount][]colorDelta
 
 	for i := 0; i < errorRowCount; i++ {
-		colorError[i] = make([]colorDelta, width+filterWidth-1)
+		colorError[i] = make([]colorDelta, bounds.Dx()+filterWidth-1)
 	}
 
-	for y := 0; y < height; y++ {
-		for x := 0; x < width; x++ {
+	for y := 0; y < bounds.Dy(); y++ {
+		for x := 0; x < bounds.Dx(); x++ {
 			var (
 				diffusion = diffuseColorDeltas(colorError, x+filterCenter)
 				offset    = y*stride + x
