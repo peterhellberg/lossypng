@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"image"
+	"image/color"
 	"image/png"
 	"log"
 	"os"
@@ -24,6 +25,46 @@ func TestOptimize(t *testing.T) {
 
 	if got, max := gb.Len(), 26265; got > max {
 		t.Errorf("gb.Len() = %d, expected max %d", got, max)
+	}
+
+	g = Optimize(m, NoConversion, 20)
+	gb = pngBuffer(g)
+
+	if got, max := gb.Len(), 91380; got > max {
+		t.Errorf("gb.Len() = %d, expected max %d", got, max)
+	}
+}
+
+func TestPaethPredictor(t *testing.T) {
+	for i, tt := range []struct {
+		a, b, c, want uint8
+	}{
+		{1, 2, 3, 1},
+		{4, 5, 6, 4},
+		{7, 8, 9, 7},
+		{2, 4, 1, 4},
+	} {
+		if got := paethPredictor(tt.a, tt.b, tt.c); got != tt.want {
+			t.Fatalf(`[%d] paethPredictor(%d, %d, %d) = %d, want %d`,
+				i, tt.a, tt.b, tt.c, got, tt.want)
+		}
+	}
+}
+
+func TestColorDifference(t *testing.T) {
+	for i, tt := range []struct {
+		a color.Color
+		b color.Color
+		d colorDelta
+	}{
+		{color.White, color.Black, colorDelta{10920, 87380, 10921, 0}},
+		{color.Black, color.White, colorDelta{-10920, -87380, -10921, 0}},
+		{color.White, color.RGBA{0xff, 0x66, 0x00, 0xff}, colorDelta{0, 52428, -1, 0}},
+	} {
+		d := colorDifference(tt.a, tt.b)
+		if d[0] != tt.d[0] || d[1] != tt.d[1] || d[2] != tt.d[2] || d[3] != tt.d[3] {
+			t.Fatalf("[%d] colorDifference(tt.a, tt.b) = %v, want %v", i, d, tt.d)
+		}
 	}
 }
 
