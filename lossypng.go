@@ -279,10 +279,9 @@ func colorDifference(a, b color.Color) colorDelta {
 
 	delta[3] = int32(ca[3]) - int32(cb[3])
 
-	/*
-	 * Compute a very basic perceptual distance using
-	 * formula from http://www.compuphase.com/cmetric.htm .
-	 */
+	// Compute a very basic perceptual distance using
+	// formula from http://www.compuphase.com/cmetric.htm
+
 	redA := ca[0]
 	redB := cb[0]
 
