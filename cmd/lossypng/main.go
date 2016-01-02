@@ -82,17 +82,19 @@ func main() {
 		}
 		outFile.Close()
 
-		var (
-			inSize      = inInfo.Size()
-			inSizeDesc  = sizeDesc(inSize)
-			outSize     = outInfo.Size()
-			outSizeDesc = sizeDesc(outSize)
-			percentage  = fmt.Sprintf("%d%%", (outSize*100+inSize/2)/inSize)
-		)
-
-		fmt.Printf("compressed %s (%s) to %s (%s, %s)\n",
-			path.Base(fn), inSizeDesc, path.Base(outPath), outSizeDesc, percentage)
+		fmt.Println(compressionInfo(fn, outPath, inInfo.Size(), outInfo.Size()))
 	}
+}
+
+func compressionInfo(fn, outPath string, inSize, outSize int64) string {
+	var (
+		inSizeDesc  = sizeDesc(inSize)
+		outSizeDesc = sizeDesc(outSize)
+		percentage  = fmt.Sprintf("%d%%", (outSize*100+inSize/2)/inSize)
+	)
+
+	return fmt.Sprintf("compressed %s (%s) to %s (%s, %s)",
+		path.Base(fn), inSizeDesc, path.Base(outPath), outSizeDesc, percentage)
 }
 
 func pathWithSuffix(path string, suffix string) string {

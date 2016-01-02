@@ -2,6 +2,24 @@ package main
 
 import "testing"
 
+func TestCompressionInfo(t *testing.T) {
+	for i, tt := range []struct {
+		fn      string
+		outPath string
+		inSize  int64
+		outSize int64
+		want    string
+	}{
+		{"foo", "bar", 2, 1, "compressed foo (2B) to bar (1B, 50%)"},
+		{"baz/qux", "sit", 10000, 6700, "compressed qux (10kB) to sit (6700B, 67%)"},
+	} {
+		if got := compressionInfo(tt.fn, tt.outPath, tt.inSize, tt.outSize); got != tt.want {
+			t.Fatalf(`[%d] compressionInfo(%q, %q, %d, %d) = %q, want %q`,
+				i, tt.fn, tt.outPath, tt.inSize, tt.outSize, got, tt.want)
+		}
+	}
+}
+
 func TestPathWithSuffix(t *testing.T) {
 	for i, tt := range []struct {
 		path   string
