@@ -18,10 +18,11 @@ import (
 
 func main() {
 	var (
-		convertToRGBA      bool
+		colorConversion    int
 		convertToGrayscale bool
-		quantization       int
+		convertToRGBA      bool
 		extension          string
+		quantization       int
 	)
 
 	flag.BoolVar(&convertToRGBA, "c", false, "convert image to 32-bit color")
@@ -31,7 +32,6 @@ func main() {
 
 	flag.Parse()
 
-	var colorConversion int
 	if convertToRGBA && !convertToGrayscale {
 		colorConversion = lossypng.RGBAConversion
 	} else if convertToGrayscale && !convertToRGBA {
