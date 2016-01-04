@@ -46,6 +46,7 @@ func main() {
 			fmt.Printf("couldn't open %v: %v\n", fn, err)
 			return
 		}
+		defer f.Close()
 
 		inInfo, err := f.Stat()
 		if err != nil {
@@ -54,7 +55,6 @@ func main() {
 		}
 
 		m, _, err := image.Decode(f)
-		f.Close()
 		if err != nil {
 			fmt.Printf("couldn't decode %v: %v\n", fn, err)
 			return
@@ -69,6 +69,7 @@ func main() {
 			fmt.Printf("couldn't create %v: %v\n", outPath, createErr)
 			return
 		}
+		defer outFile.Close()
 
 		if err := png.Encode(outFile, o); err != nil {
 			fmt.Printf("couldn't encode %v: %v\n", fn, err)
@@ -80,7 +81,6 @@ func main() {
 			fmt.Printf("couldn't stat %v: %v\n", outFile, err)
 			return
 		}
-		outFile.Close()
 
 		fmt.Println(compressionInfo(fn, outPath, inInfo.Size(), outInfo.Size()))
 	}
